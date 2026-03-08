@@ -1,0 +1,3 @@
+[submodule "NAuth"]
+	path = NAuth
+	url = https://github.com/emaginebr/NAuth
