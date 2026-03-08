@@ -1,0 +1,90 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: docker/postgres/Dockerfile
+    container_name: devblog-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nauth-api:
+    build:
+      context: ./NAuth
+      dockerfile: Dockerfile
+    container_name: nauth-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: "http://+:80;https://+:443"
+      ConnectionStrings__NAuthContext: "Host=devblog-postgres;Port=5432;Database=nauth_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      NAuth__JwtSecret: ${JWT_SECRET}
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERTIFICATE_PASSWORD}
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /app/emagine.pfx
+    ports:
+      - "${NAUTH_HTTP_PORT:-5004}:80"
+      - "${NAUTH_HTTPS_PORT:-5005}:443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 3s
+      start_period: 15s
+      retries: 3
+
+  nnews-api:
+    build:
+      context: ./NNews
+      dockerfile: NNews.API.Dockerfile
+    container_name: nnews-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_URLS: "http://+:8080;https://+:8443"
+      ConnectionStrings__NNewsContext: "Host=devblog-postgres;Port=5432;Database=nnews_db;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      NAuth__JwtSecret: ${JWT_SECRET}
+      NAuth__ApiURL: http://nauth-api:80
+      ASPNETCORE_Kestrel__Certificates__Default__Path: ${CERTIFICATE_PATH:-/app/certs/certificate.pfx}
+      ASPNETCORE_Kestrel__Certificates__Default__Password: ${CERTIFICATE_PASSWORD}
+    ports:
+      - "${NNEWS_HTTP_PORT:-5007}:8080"
+      - "${NNEWS_HTTPS_PORT:-5008}:8443"
+    volumes:
+      - nnews_logs:/app/logs
+    depends_on:
+      nauth-api:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_AUTH_API_URL: ${VITE_AUTH_API_URL:-http://localhost:5004}
+        VITE_NEWS_API_URL: ${VITE_NEWS_API_URL:-http://localhost:5007}
+    container_name: devblog-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    depends_on:
+      - nauth-api
+      - nnews-api
+
+volumes:
+  postgres_data:
+    driver: local
+  nnews_logs:
+    driver: local
