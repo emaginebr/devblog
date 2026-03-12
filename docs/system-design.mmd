@@ -1,0 +1,35 @@
+%% Diagram: DevBlog System Design
+%% Type: Flowchart
+%% Generated: 2026-03-11
+
+flowchart TD
+    subgraph client["🖥️ Browser"]
+        spa["DevBlog SPA\n(React 19 + Vite 6)\nTailwind CSS"]
+    end
+
+    subgraph sdks["📦 NPM SDK Packages"]
+        nauth_sdk["nauth-react\n(Auth SDK)"]
+        nnews_sdk["nnews-react\n(News SDK)"]
+    end
+
+    subgraph apis["☁️ External APIs"]
+        auth_api["NAuth API\n(Authentication & Users)"]
+        news_api["NNews API\n(Articles, Categories, Tags)"]
+    end
+
+    spa -->|"uses"| nauth_sdk
+    spa -->|"uses"| nnews_sdk
+    nauth_sdk -->|"HTTP + X-Tenant-Id: devblog"| auth_api
+    nnews_sdk -->|"HTTP + X-Tenant-Id: devblog"| news_api
+
+    auth_api -->|"JWT tokens"| nauth_sdk
+    news_api -->|"JSON responses"| nnews_sdk
+
+    style client fill:#e0f2fe,stroke:#0284c7,color:#0c4a6e
+    style sdks fill:#fef3c7,stroke:#d97706,color:#78350f
+    style apis fill:#dcfce7,stroke:#16a34a,color:#14532d
+    style spa fill:#bae6fd,stroke:#0284c7,color:#0c4a6e
+    style nauth_sdk fill:#fde68a,stroke:#d97706,color:#78350f
+    style nnews_sdk fill:#fde68a,stroke:#d97706,color:#78350f
+    style auth_api fill:#bbf7d0,stroke:#16a34a,color:#14532d
+    style news_api fill:#bbf7d0,stroke:#16a34a,color:#14532d

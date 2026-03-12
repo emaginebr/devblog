@@ -1,9 +1,0 @@
-[submodule "NAuth"]
-	path = NAuth
-	url = https://github.com/emaginebr/NAuth
-[submodule "NNews"]
-	path = NNews
-	url = https://github.com/emaginebr/NNews
-[submodule "zTools"]
-	path = zTools
-	url = https://github.com/emaginebr/zTools.git
