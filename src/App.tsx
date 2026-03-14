@@ -1,5 +1,6 @@
+import { useMemo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { NAuthProvider } from 'nauth-react';
+import { NAuthProvider, useNAuth } from 'nauth-react';
 import { NNewsProvider } from 'nnews-react';
 import 'nauth-react/styles';
 
@@ -22,7 +23,49 @@ import { ROUTES } from './lib/constants';
 
 const authApiUrl = import.meta.env.VITE_AUTH_API_URL || 'https://emagine.com.br/auth-api';
 const newsApiUrl = import.meta.env.VITE_NEWS_API_URL || 'https://emagine.com.br/news-api';
-const tenantHeaders = { 'X-Tenant-Id': 'devblog' };
+const tenantId = 'devblog';
+const tenantHeaders = { 'X-Tenant-Id': tenantId };
+
+function AppContent() {
+  const { token } = useNAuth();
+
+  const nNewsConfig = useMemo(() => ({
+    apiUrl: newsApiUrl,
+    tenantId,
+    headers: {
+      ...tenantHeaders,
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+  }), [token]);
+
+  return (
+    <NNewsProvider config={nNewsConfig}>
+      <Routes>
+        <Route element={<Layout />}>
+          {/* Public routes */}
+          <Route path={ROUTES.HOME} element={<HomePage />} />
+          <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+          <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+          <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
+          <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+          <Route path={ROUTES.ARTICLES} element={<ArticlesPage />} />
+          <Route path={ROUTES.ARTICLE_VIEW} element={<ArticleViewPage />} />
+
+          {/* Protected routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
+            <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
+            <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePasswordPage />} />
+            <Route path={ROUTES.ARTICLE_NEW} element={<ArticleEditorPage />} />
+            <Route path={ROUTES.ARTICLE_EDIT} element={<ArticleEditorPage />} />
+            <Route path={ROUTES.CATEGORIES} element={<CategoriesPage />} />
+            <Route path={ROUTES.TAGS} element={<TagsPage />} />
+          </Route>
+        </Route>
+      </Routes>
+    </NNewsProvider>
+  );
+}
 
 function App() {
   return (
@@ -35,36 +78,7 @@ function App() {
           defaultTheme: 'system',
         }}
       >
-        <NNewsProvider
-          config={{
-            apiUrl: newsApiUrl,
-            headers: tenantHeaders,
-          }}
-        >
-          <Routes>
-              <Route element={<Layout />}>
-                {/* Public routes */}
-                <Route path={ROUTES.HOME} element={<HomePage />} />
-                <Route path={ROUTES.LOGIN} element={<LoginPage />} />
-                <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
-                <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
-                <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
-                <Route path={ROUTES.ARTICLES} element={<ArticlesPage />} />
-                <Route path={ROUTES.ARTICLE_VIEW} element={<ArticleViewPage />} />
-
-                {/* Protected routes */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-                  <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
-                  <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePasswordPage />} />
-                  <Route path={ROUTES.ARTICLE_NEW} element={<ArticleEditorPage />} />
-                  <Route path={ROUTES.ARTICLE_EDIT} element={<ArticleEditorPage />} />
-                  <Route path={ROUTES.CATEGORIES} element={<CategoriesPage />} />
-                  <Route path={ROUTES.TAGS} element={<TagsPage />} />
-                </Route>
-              </Route>
-            </Routes>
-        </NNewsProvider>
+        <AppContent />
       </NAuthProvider>
     </BrowserRouter>
   );

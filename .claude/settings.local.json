@@ -6,7 +6,12 @@
       "Bash(npx tsc:*)",
       "Bash(npm view:*)",
       "Bash(npm pack:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(npm update:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)",
+      "Bash(gh api:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

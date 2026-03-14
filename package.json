@@ -12,7 +12,7 @@
   "dependencies": {
     "lucide-react": "^0.468.0",
     "nauth-react": "^0.7.1",
-    "nnews-react": "^2.0.6",
+    "nnews-react": "^0.3.10",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.0",
