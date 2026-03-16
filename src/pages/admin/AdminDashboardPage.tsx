@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from 'nauth-react';
 import { useArticles, useCategories, useTags } from 'nnews-react';
 import { FileText, FolderTree, Tags, Plus, PenLine, Calendar } from 'lucide-react';
-import { ROUTES } from '../lib/constants';
+import { ROUTES } from '../../lib/constants';
+import { articlePath } from '../../lib/public-api';
 
-export default function DashboardPage() {
+export default function AdminDashboardPage() {
   const { user } = useAuth();
   const { articles, fetchArticles } = useArticles();
   const { categories, fetchCategories } = useCategories();
@@ -86,7 +87,7 @@ export default function DashboardPage() {
             {articles.items.map((article) => (
               <Link
                 key={article.articleId}
-                to={`/articles/${article.articleId}`}
+                to={articlePath(article.category?.title ?? 'artigo', article.title, article.articleId, '/admin/dashboard')}
                 className="flex items-center justify-between p-4 hover:bg-surface-2/50 transition-colors group"
               >
                 <div className="flex-1 min-w-0">

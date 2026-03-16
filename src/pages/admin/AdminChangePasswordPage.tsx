@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { ChangePasswordForm } from 'nauth-react';
-import { ROUTES } from '../lib/constants';
+import { ROUTES } from '../../lib/constants';
 
-export default function ChangePasswordPage() {
+export default function AdminChangePasswordPage() {
   const navigate = useNavigate();
 
   return (

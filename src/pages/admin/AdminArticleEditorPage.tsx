@@ -9,9 +9,9 @@ import {
   type ArticleUpdate,
 } from 'nnews-react';
 import { toast } from 'sonner';
-import { ROUTES } from '../lib/constants';
+import { ROUTES } from '../../lib/constants';
 
-export default function ArticleEditorPage() {
+export default function AdminArticleEditorPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getArticleById, createArticle, updateArticle } = useArticles();

@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import { Toaster } from 'sonner';
+import { Linkedin, Github, Instagram } from 'lucide-react';
 
 export default function Layout() {
   return (
@@ -14,14 +15,21 @@ export default function Layout() {
         <div className="container mx-auto px-4 max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 rounded bg-gradient-to-br from-dotnet-purple to-dotnet-purple-light opacity-60" />
-            <p className="font-mono text-xs text-surface-4 tracking-wider uppercase">
+            <p className="font-mono text-xs text-gray-400 tracking-wider uppercase">
               Rodrigo Landim &copy; {new Date().getFullYear()}
             </p>
           </div>
-          <p className="font-mono text-xs text-surface-4">
-            <span className="text-dotnet-cyan opacity-50">{'>'}</span>{' '}
-            Feito com .NET & React
-          </p>
+          <div className="flex items-center gap-4">
+            <a href="https://linkedin.com/in/rodrigolandim" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-dotnet-purple-light transition-colors">
+              <Linkedin className="h-4 w-4" />
+            </a>
+            <a href="https://github.com/landim32" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-dotnet-purple-light transition-colors">
+              <Github className="h-4 w-4" />
+            </a>
+            <a href="https://instagram.com/rodrigo_carneiro32" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-dotnet-purple-light transition-colors">
+              <Instagram className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </footer>
       <Toaster

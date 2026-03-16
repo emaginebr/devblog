@@ -1,24 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from 'nauth-react';
-import { useCategories } from 'nnews-react';
+import type { Category } from 'nnews-react';
 import {
   LogOut, User, LayoutDashboard, FileText, FolderTree, Tags,
   Menu, X, ChevronDown, Shield,
 } from 'lucide-react';
 import { ROUTES, APP_NAME } from '../lib/constants';
+import { fetchPublic, categoryPath } from '../lib/public-api';
 
 export default function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
-  const { categories, fetchCategories } = useCategories();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
   const adminRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetchCategories();
+    fetchPublic<Category[]>('/Category/listByParent').then(setCategories).catch(() => {});
   }, []);
 
   // Fecha dropdown admin ao clicar fora
@@ -53,10 +54,10 @@ export default function Navbar() {
         : 'text-gray-400 hover:text-white hover:bg-surface-2'
     }`;
 
-  // Top 4 categorias com mais artigos
+  // Top 3 categorias com mais artigos
   const topCategories = [...categories]
     .sort((a, b) => (b.articleCount ?? 0) - (a.articleCount ?? 0))
-    .slice(0, 4);
+    .slice(0, 3);
 
   const adminMenuItems = [
     { to: ROUTES.DASHBOARD, icon: LayoutDashboard, label: 'Dashboard' },
@@ -118,7 +119,7 @@ export default function Navbar() {
             topCategories.map((cat) => (
               <Link
                 key={cat.categoryId}
-                to={`${ROUTES.ARTICLES}?category=${cat.categoryId}`}
+                to={categoryPath(cat.title, cat.categoryId)}
                 className="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 text-gray-400 hover:text-white hover:bg-surface-2"
               >
                 {cat.title}
@@ -206,7 +207,7 @@ export default function Navbar() {
                 {topCategories.map((cat) => (
                   <Link
                     key={cat.categoryId}
-                    to={`${ROUTES.ARTICLES}?category=${cat.categoryId}`}
+                    to={categoryPath(cat.title, cat.categoryId)}
                     onClick={() => setMobileOpen(false)}
                     className="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-all duration-200 text-gray-400 hover:text-white hover:bg-surface-2"
                   >

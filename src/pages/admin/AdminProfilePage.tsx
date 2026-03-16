@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth, UserEditForm } from 'nauth-react';
-import { ROUTES } from '../lib/constants';
+import { ROUTES } from '../../lib/constants';
 
-export default function ProfilePage() {
+export default function AdminProfilePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 

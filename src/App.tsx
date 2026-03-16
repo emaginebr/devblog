@@ -11,16 +11,19 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
-import DashboardPage from './pages/DashboardPage';
-import ProfilePage from './pages/ProfilePage';
-import ChangePasswordPage from './pages/ChangePasswordPage';
+import SearchResultPage from './pages/SearchResultPage';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticleViewPage from './pages/ArticleViewPage';
-import AdminArticlesPage from './pages/admin/AdminArticlesPage';
-import AdminArticleViewPage from './pages/admin/AdminArticleViewPage';
-import ArticleEditorPage from './pages/ArticleEditorPage';
 import CategoriesPage from './pages/CategoriesPage';
 import TagsPage from './pages/TagsPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminProfilePage from './pages/admin/AdminProfilePage';
+import AdminChangePasswordPage from './pages/admin/AdminChangePasswordPage';
+import AdminArticlesPage from './pages/admin/AdminArticlesPage';
+import AdminArticleViewPage from './pages/admin/AdminArticleViewPage';
+import AdminArticleEditorPage from './pages/admin/AdminArticleEditorPage';
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
+import AdminTagsPage from './pages/admin/AdminTagsPage';
 import { ROUTES } from './lib/constants';
 
 const authApiUrl = import.meta.env.VITE_AUTH_API_URL || 'https://emagine.com.br/auth-api';
@@ -50,20 +53,23 @@ function AppContent() {
           <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
           <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPasswordPage />} />
           <Route path={ROUTES.RESET_PASSWORD} element={<ResetPasswordPage />} />
+          <Route path={ROUTES.SEARCH} element={<SearchResultPage />} />
           <Route path={ROUTES.ARTICLES} element={<ArticlesPage />} />
           <Route path={ROUTES.ARTICLE_VIEW} element={<ArticleViewPage />} />
+          <Route path={ROUTES.TAG_VIEW} element={<TagsPage />} />
+          <Route path={ROUTES.CATEGORY_VIEW} element={<CategoriesPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
-            <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
-            <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
-            <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePasswordPage />} />
+            <Route path={ROUTES.DASHBOARD} element={<AdminDashboardPage />} />
+            <Route path={ROUTES.PROFILE} element={<AdminProfilePage />} />
+            <Route path={ROUTES.CHANGE_PASSWORD} element={<AdminChangePasswordPage />} />
             <Route path={ROUTES.ADMIN_ARTICLES} element={<AdminArticlesPage />} />
             <Route path={ROUTES.ADMIN_ARTICLE_VIEW} element={<AdminArticleViewPage />} />
-            <Route path={ROUTES.ARTICLE_NEW} element={<ArticleEditorPage />} />
-            <Route path={ROUTES.ARTICLE_EDIT} element={<ArticleEditorPage />} />
-            <Route path={ROUTES.CATEGORIES} element={<CategoriesPage />} />
-            <Route path={ROUTES.TAGS} element={<TagsPage />} />
+            <Route path={ROUTES.ARTICLE_NEW} element={<AdminArticleEditorPage />} />
+            <Route path={ROUTES.ARTICLE_EDIT} element={<AdminArticleEditorPage />} />
+            <Route path={ROUTES.CATEGORIES} element={<AdminCategoriesPage />} />
+            <Route path={ROUTES.TAGS} element={<AdminTagsPage />} />
           </Route>
         </Route>
       </Routes>

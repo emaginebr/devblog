@@ -1,137 +1,169 @@
 import { useEffect, useState } from 'react';
-import {
-  useTags,
-  TagList,
-  TagModal,
-  TagMerge,
-  type Tag,
-  type TagInput,
-  type TagUpdate,
-} from 'nnews-react';
-import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
+import type { Article, Tag as TagType } from 'nnews-react';
+import { ChevronLeft, ChevronRight, Tag, Calendar } from 'lucide-react';
+import { fetchPublic, parseTagParam, articlePath, type PagedResult } from '../lib/public-api';
 
 export default function TagsPage() {
-  const {
-    tags,
-    loading,
-    error,
-    fetchTags,
-    createTag,
-    updateTag,
-    deleteTag,
-    mergeTags,
-  } = useTags();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [mergeOpen, setMergeOpen] = useState(false);
-  const [selectedTag, setSelectedTag] = useState<Tag | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { tagSlug } = useParams<{ tagSlug: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [tag, setTag] = useState<TagType | null>(null);
+  const [articles, setArticles] = useState<PagedResult<Article> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+
+  const tagId = tagSlug ? parseTagParam(tagSlug) : null;
 
   useEffect(() => {
-    fetchTags();
-  }, []);
+    if (!tagId) {
+      navigate('/', { replace: true });
+      return;
+    }
 
-  const handleSave = async (data: TagInput | TagUpdate) => {
-    try {
-      setSaving(true);
-      if (selectedTag?.tagId) {
-        await updateTag(data as TagUpdate);
-        toast.success('Tag atualizada!');
-      } else {
-        await createTag(data as TagInput);
-        toast.success('Tag criada!');
+    async function loadTag() {
+      try {
+        const t = await fetchPublic<TagType>(`/Tag/${tagId}`);
+        setTag(t);
+      } catch {
+        navigate('/', { replace: true });
       }
-      setModalOpen(false);
-      setSelectedTag(null);
-      await fetchTags();
-    } catch {
-      toast.error('Erro ao salvar tag.');
-    } finally {
-      setSaving(false);
     }
-  };
+    loadTag();
+  }, [tagId, navigate]);
 
-  const handleDelete = async (tag: Tag) => {
-    if (!confirm(`Deseja excluir a tag "${tag.title}"?`)) return;
-    try {
-      await deleteTag(tag.tagId!);
-      toast.success('Tag excluida!');
-      await fetchTags();
-    } catch {
-      toast.error('Erro ao excluir tag.');
-    }
-  };
+  useEffect(() => {
+    if (!tag?.slug) return;
 
-  const handleMerge = async (sourceId: number, targetId: number) => {
-    try {
-      setSaving(true);
-      await mergeTags(sourceId, targetId);
-      toast.success('Tags mescladas com sucesso!');
-      setMergeOpen(false);
-      setSelectedTag(null);
-      await fetchTags();
-    } catch {
-      toast.error('Erro ao mesclar tags.');
-    } finally {
-      setSaving(false);
+    async function loadArticles() {
+      setLoading(true);
+      try {
+        const data = await fetchPublic<PagedResult<Article>>('/Article/ListByTag', {
+          tagSlug: tag!.slug!,
+          page,
+          pageSize: 12,
+        });
+        setArticles(data);
+      } catch {
+        setArticles(null);
+      } finally {
+        setLoading(false);
+      }
     }
-  };
+    loadArticles();
+  }, [tag?.slug, page]);
+
+  if (!tag) {
+    return (
+      <div className="flex justify-center py-16">
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-dotnet-purple/20 border-t-dotnet-purple" />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Tags</h1>
-        <button
-          onClick={() => {
-            setSelectedTag(null);
-            setModalOpen(true);
-          }}
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
-        >
-          <Plus className="h-4 w-4" />
-          Nova Tag
-        </button>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between animate-fade-in-up">
+        <div className="flex items-center gap-3">
+          <div className="w-1 h-7 rounded-full bg-gradient-to-b from-dotnet-purple to-dotnet-cyan" />
+          <Tag className="h-5 w-5 text-orange-400" />
+          <h1 className="font-display text-3xl font-bold text-white tracking-tight">
+            {tag.title}
+          </h1>
+          <span className="font-mono text-sm text-gray-500">
+            {articles?.totalCount ?? 0} artigo(s)
+          </span>
+        </div>
       </div>
 
-      <TagList
-        tags={tags}
-        loading={loading}
-        error={error}
-        onEditClick={(tag) => {
-          setSelectedTag(tag);
-          setModalOpen(true);
-        }}
-        onDeleteClick={handleDelete}
-        onMergeClick={(tag) => {
-          setSelectedTag(tag);
-          setMergeOpen(true);
-        }}
-        showActions
-      />
+      {/* Article List */}
+      <div className="animate-fade-in-up stagger-1">
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-dotnet-purple/20 border-t-dotnet-purple" />
+          </div>
+        ) : articles && articles.items.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {articles.items.map((article, i) => (
+              <Link
+                key={article.articleId}
+                to={articlePath(article.category?.title ?? 'artigo', article.title, article.articleId, location.pathname)}
+                className={`card-noir group overflow-hidden animate-fade-in-up stagger-${Math.min(i + 1, 6)}`}
+              >
+                <div className="aspect-video overflow-hidden relative bg-surface-2">
+                  {(article.imageUrl || article.imageName) ? (
+                    <>
+                      <img
+                        src={article.imageUrl || article.imageName}
+                        alt={article.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-surface-1 via-transparent to-transparent opacity-60" />
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Tag className="h-10 w-10 text-gray-700" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <h3 className="font-display font-semibold text-white mb-3 line-clamp-2 group-hover:text-dotnet-purple-light transition-colors">
+                    {article.title}
+                  </h3>
+                  <div className="flex items-center gap-3 text-xs text-gray-500 font-mono">
+                    {article.dateAt && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(article.dateAt).toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
+                    {article.category && (
+                      <span className="badge-dotnet">
+                        <Tag className="h-2.5 w-2.5 inline mr-1" />
+                        {article.category.title}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 card-noir">
+            <Tag className="h-8 w-8 text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-500 font-mono text-sm">
+              Nenhum artigo com esta tag.
+            </p>
+          </div>
+        )}
+      </div>
 
-      <TagModal
-        isOpen={modalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          setSelectedTag(null);
-        }}
-        tag={selectedTag}
-        onSave={handleSave}
-        loading={saving}
-      />
-
-      {selectedTag && (
-        <TagMerge
-          sourceTag={selectedTag}
-          availableTags={tags.filter((t) => t.tagId !== selectedTag.tagId)}
-          isOpen={mergeOpen}
-          onClose={() => {
-            setMergeOpen(false);
-            setSelectedTag(null);
-          }}
-          onMerge={handleMerge}
-          loading={saving}
-        />
+      {/* Pagination */}
+      {articles && articles.totalPages > 1 && (
+        <div className="flex justify-center items-center gap-3 pt-4 animate-fade-in-up stagger-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="btn-secondary !py-2 !px-3 inline-flex items-center gap-1 text-sm disabled:opacity-30"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </button>
+          <span className="font-mono text-xs text-gray-500 px-3">
+            <span className="text-dotnet-purple-light">{page}</span>
+            <span className="mx-1">/</span>
+            <span>{articles.totalPages}</span>
+          </span>
+          <button
+            onClick={() => setPage((p) => Math.min(articles.totalPages, p + 1))}
+            disabled={page === articles.totalPages}
+            className="btn-secondary !py-2 !px-3 inline-flex items-center gap-1 text-sm disabled:opacity-30"
+          >
+            Próximo
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
       )}
     </div>
   );

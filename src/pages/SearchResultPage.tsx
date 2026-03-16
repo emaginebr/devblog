@@ -1,45 +1,33 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import type { Article, Category } from 'nnews-react';
-import { ChevronLeft, ChevronRight, FolderTree, Calendar, Tag } from 'lucide-react';
-import { fetchPublic, parseCategoryParam, articlePath, type PagedResult } from '../lib/public-api';
+import { useSearchParams, useLocation, Link } from 'react-router-dom';
+import type { Article } from 'nnews-react';
+import { ChevronLeft, ChevronRight, Search, Calendar, Tag } from 'lucide-react';
+import { fetchPublic, articlePath, type PagedResult } from '../lib/public-api';
 
-export default function CategoriesPage() {
-  const { slug } = useParams<{ slug: string }>();
-  const navigate = useNavigate();
+export default function SearchResultPage() {
+  const [searchParams] = useSearchParams();
   const location = useLocation();
-  const [category, setCategory] = useState<Category | null>(null);
+  const keyword = searchParams.get('q') || '';
   const [articles, setArticles] = useState<PagedResult<Article> | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
-  const categoryId = slug ? parseCategoryParam(slug) : null;
+  useEffect(() => {
+    setPage(1);
+  }, [keyword]);
 
   useEffect(() => {
-    if (!categoryId) {
-      navigate('/', { replace: true });
+    if (!keyword.trim()) {
+      setArticles(null);
+      setLoading(false);
       return;
     }
 
-    async function loadCategory() {
-      try {
-        const cat = await fetchPublic<Category>(`/Category/${categoryId}`);
-        setCategory(cat);
-      } catch {
-        navigate('/', { replace: true });
-      }
-    }
-    loadCategory();
-  }, [categoryId, navigate]);
-
-  useEffect(() => {
-    if (!categoryId) return;
-
-    async function loadArticles() {
+    async function loadResults() {
       setLoading(true);
       try {
-        const data = await fetchPublic<PagedResult<Article>>('/Article/ListByCategory', {
-          categoryId: categoryId!,
+        const data = await fetchPublic<PagedResult<Article>>('/Article/Search', {
+          keyword,
           page,
           pageSize: 12,
         });
@@ -50,16 +38,8 @@ export default function CategoriesPage() {
         setLoading(false);
       }
     }
-    loadArticles();
-  }, [categoryId, page]);
-
-  if (!category) {
-    return (
-      <div className="flex justify-center py-16">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-dotnet-purple/20 border-t-dotnet-purple" />
-      </div>
-    );
-  }
+    loadResults();
+  }, [keyword, page]);
 
   return (
     <div className="space-y-8">
@@ -67,9 +47,9 @@ export default function CategoriesPage() {
       <div className="flex items-center justify-between animate-fade-in-up">
         <div className="flex items-center gap-3">
           <div className="w-1 h-7 rounded-full bg-gradient-to-b from-dotnet-purple to-dotnet-cyan" />
-          <FolderTree className="h-5 w-5 text-dotnet-cyan" />
+          <Search className="h-5 w-5 text-dotnet-purple-light" />
           <h1 className="font-display text-3xl font-bold text-white tracking-tight">
-            {category.title}
+            Resultados para "{keyword}"
           </h1>
           <span className="font-mono text-sm text-gray-500">
             {articles?.totalCount ?? 0} artigo(s)
@@ -88,7 +68,7 @@ export default function CategoriesPage() {
             {articles.items.map((article, i) => (
               <Link
                 key={article.articleId}
-                to={articlePath(category.title, article.title, article.articleId, location.pathname)}
+                to={articlePath(article.category?.title ?? 'artigo', article.title, article.articleId, `${location.pathname}${location.search}`)}
                 className={`card-noir group overflow-hidden animate-fade-in-up stagger-${Math.min(i + 1, 6)}`}
               >
                 <div className="aspect-video overflow-hidden relative bg-surface-2">
@@ -118,6 +98,12 @@ export default function CategoriesPage() {
                         {new Date(article.dateAt).toLocaleDateString('pt-BR')}
                       </span>
                     )}
+                    {article.category && (
+                      <span className="badge-dotnet">
+                        <Tag className="h-2.5 w-2.5 inline mr-1" />
+                        {article.category.title}
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -125,9 +111,9 @@ export default function CategoriesPage() {
           </div>
         ) : (
           <div className="text-center py-16 card-noir">
-            <FolderTree className="h-8 w-8 text-gray-600 mx-auto mb-3" />
+            <Search className="h-8 w-8 text-gray-600 mx-auto mb-3" />
             <p className="text-gray-500 font-mono text-sm">
-              Nenhum artigo nesta categoria.
+              Nenhum artigo encontrado para "{keyword}".
             </p>
           </div>
         )}

@@ -1,26 +1,43 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useArticles, useCategories, useTags, type Article } from 'nnews-react';
+import type { Article, Category, Tag as TagType } from 'nnews-react';
 import { ArrowRight, Calendar, Tag, Search, FolderTree, Tags } from 'lucide-react';
 import { ROUTES } from '../lib/constants';
+import { fetchPublic, categoryPath, articlePath, tagPath, type PagedResult } from '../lib/public-api';
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { articles, loading, fetchArticles } = useArticles();
-  const { categories, fetchCategories } = useCategories();
-  const { tags, fetchTags } = useTags();
+  const [articles, setArticles] = useState<PagedResult<Article> | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<TagType[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchArticles({ page: 1, pageSize: 6 });
-    fetchCategories();
-    fetchTags();
+    async function loadPublicData() {
+      setLoading(true);
+      try {
+        const [articlesData, categoriesData, tagsData] = await Promise.all([
+          fetchPublic<PagedResult<Article>>('/Article/ListByRoles', { page: 1, pageSize: 6 }),
+          fetchPublic<Category[]>('/Category/listByParent'),
+          fetchPublic<TagType[]>('/Tag/ListByRoles'),
+        ]);
+        setArticles(articlesData);
+        setCategories(categoriesData);
+        setTags(tagsData);
+      } catch (err) {
+        console.error('Failed to load public data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadPublicData();
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`${ROUTES.ARTICLES}?search=${encodeURIComponent(searchTerm.trim())}`);
+      navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 
@@ -107,7 +124,7 @@ export default function HomePage() {
                 {categories.map((cat) => (
                   <li key={cat.categoryId}>
                     <Link
-                      to={`${ROUTES.ARTICLES}?category=${cat.categoryId}`}
+                      to={categoryPath(cat.title, cat.categoryId)}
                       className="flex items-center justify-between py-1.5 px-2 rounded-md text-sm text-gray-400 hover:text-white hover:bg-surface-2 transition-all group"
                     >
                       <span className="group-hover:text-dotnet-purple-light transition-colors">
@@ -134,7 +151,7 @@ export default function HomePage() {
                 {tags.map((tag) => (
                   <Link
                     key={tag.tagId}
-                    to={`${ROUTES.ARTICLES}?tag=${tag.tagId}`}
+                    to={tagPath(tag.title, tag.tagId!)}
                     className="inline-flex items-center gap-1.5 text-xs font-mono px-2.5 py-1.5 rounded-lg bg-surface-2 border border-surface-3 text-gray-400 hover:text-dotnet-purple-light hover:border-dotnet-purple/30 transition-all"
                   >
                     <Tag className="h-2.5 w-2.5" />
@@ -163,7 +180,7 @@ function SectionHeader({ title, noMargin }: { title: string; noMargin?: boolean 
 function ArticleCard({ article, index }: { article: Article; index: number }) {
   return (
     <Link
-      to={`/articles/${article.articleId}`}
+      to={articlePath(article.category?.title ?? 'artigo', article.title, article.articleId)}
       className={`card-noir group overflow-hidden animate-fade-in-up stagger-${Math.min(index + 1, 6)}`}
     >
       <div className="aspect-video overflow-hidden relative bg-surface-2">

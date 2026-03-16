@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useArticles, ArticleList } from 'nnews-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { articlePath } from '../lib/public-api';
 
 export default function ArticlesPage() {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export default function ArticlesPage() {
           articles={articles}
           loading={loading}
           error={error}
-          onArticleClick={(article) => navigate(`/articles/${article.articleId}`)}
+          onArticleClick={(article) => navigate(articlePath(article.category?.title ?? 'artigo', article.title, article.articleId, '/articles'))}
         />
       </div>
 
