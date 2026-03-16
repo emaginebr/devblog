@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from 'nauth-react';
 import { useArticles, useCategories, useTags } from 'nnews-react';
-import { FileText, FolderTree, Tags, Plus, PenLine } from 'lucide-react';
+import { FileText, FolderTree, Tags, Plus, PenLine, Calendar } from 'lucide-react';
 import { ROUTES } from '../lib/constants';
 
 export default function DashboardPage() {
@@ -18,53 +18,57 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Bem-vindo, {user?.name}!
+    <div className="space-y-10">
+      {/* Welcome Header */}
+      <div className="animate-fade-in-up">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="font-mono text-xs text-dotnet-cyan opacity-60">{'>'} session.user</span>
+        </div>
+        <h1 className="font-display text-3xl font-bold text-white tracking-tight">
+          Bem-vindo, <span className="text-gradient-dotnet">{user?.name}</span>
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-gray-500 mt-1 font-light">
           Gerencie seus artigos, categorias e tags.
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-fade-in-up stagger-1">
         <StatCard
-          icon={<FileText className="h-8 w-8 text-blue-600" />}
+          icon={<FileText className="h-5 w-5" />}
           label="Artigos"
           count={articles?.totalCount ?? 0}
-          linkTo={ROUTES.ARTICLES}
+          linkTo={ROUTES.ADMIN_ARTICLES}
+          color="purple"
         />
         <StatCard
-          icon={<FolderTree className="h-8 w-8 text-green-600" />}
+          icon={<FolderTree className="h-5 w-5" />}
           label="Categorias"
           count={categories.length}
           linkTo={ROUTES.CATEGORIES}
+          color="cyan"
         />
         <StatCard
-          icon={<Tags className="h-8 w-8 text-purple-600" />}
+          icon={<Tags className="h-5 w-5" />}
           label="Tags"
           count={tags.length}
           linkTo={ROUTES.TAGS}
+          color="orange"
         />
       </div>
 
       {/* Quick Actions */}
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Acoes Rapidas</h2>
+      <div className="animate-fade-in-up stagger-2">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1 h-5 rounded-full bg-gradient-to-b from-dotnet-purple to-dotnet-cyan" />
+          <h2 className="font-display text-lg font-semibold text-white">Ações Rápidas</h2>
+        </div>
         <div className="flex flex-wrap gap-3">
-          <Link
-            to={ROUTES.ARTICLE_NEW}
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700"
-          >
+          <Link to={ROUTES.ARTICLE_NEW} className="btn-primary inline-flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Novo Artigo
+            <span>Novo Artigo</span>
           </Link>
-          <Link
-            to={ROUTES.ARTICLES}
-            className="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 dark:hover:bg-gray-800"
-          >
+          <Link to={ROUTES.ADMIN_ARTICLES} className="btn-secondary inline-flex items-center gap-2">
             <PenLine className="h-4 w-4" />
             Gerenciar Artigos
           </Link>
@@ -73,28 +77,42 @@ export default function DashboardPage() {
 
       {/* Recent Articles */}
       {articles && articles.items.length > 0 && (
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Artigos Recentes</h2>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700">
+        <div className="animate-fade-in-up stagger-3">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1 h-5 rounded-full bg-gradient-to-b from-dotnet-purple to-dotnet-cyan" />
+            <h2 className="font-display text-lg font-semibold text-white">Artigos Recentes</h2>
+          </div>
+          <div className="card-noir divide-y divide-surface-3 overflow-hidden">
             {articles.items.map((article) => (
               <Link
                 key={article.articleId}
                 to={`/articles/${article.articleId}`}
-                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-750"
+                className="flex items-center justify-between p-4 hover:bg-surface-2/50 transition-colors group"
               >
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">{article.title}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {article.dateAt && new Date(article.dateAt).toLocaleDateString('pt-BR')}
-                    {article.category && ` - ${article.category.title}`}
-                  </p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-white truncate group-hover:text-dotnet-purple-light transition-colors">
+                    {article.title}
+                  </h3>
+                  <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 font-mono">
+                    {article.dateAt && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(article.dateAt).toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
+                    {article.category && (
+                      <span className="text-dotnet-purple-light opacity-70">
+                        {article.category.title}
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
+                <span className={`ml-3 flex-shrink-0 font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full ${
                   article.status === 1
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                    : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
                 }`}>
-                  {article.status === 1 ? 'Publicado' : 'Rascunho'}
+                  {article.status === 1 ? 'live' : 'draft'}
                 </span>
               </Link>
             ))}
@@ -105,16 +123,50 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ icon, label, count, linkTo }: { icon: React.ReactNode; label: string; count: number; linkTo: string }) {
+function StatCard({
+  icon,
+  label,
+  count,
+  linkTo,
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  count: number;
+  linkTo: string;
+  color: 'purple' | 'cyan' | 'orange';
+}) {
+  const colorMap = {
+    purple: {
+      iconBg: 'bg-dotnet-purple/10',
+      iconText: 'text-dotnet-purple-light',
+      glow: 'group-hover:shadow-dotnet-purple/10',
+    },
+    cyan: {
+      iconBg: 'bg-dotnet-cyan/10',
+      iconText: 'text-dotnet-cyan',
+      glow: 'group-hover:shadow-dotnet-cyan/10',
+    },
+    orange: {
+      iconBg: 'bg-orange-500/10',
+      iconText: 'text-orange-400',
+      glow: 'group-hover:shadow-orange-500/10',
+    },
+  };
+
+  const c = colorMap[color];
+
   return (
     <Link
       to={linkTo}
-      className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+      className={`card-noir p-5 flex items-center gap-4 group ${c.glow} group-hover:shadow-lg`}
     >
-      {icon}
+      <div className={`w-11 h-11 rounded-lg ${c.iconBg} flex items-center justify-center ${c.iconText}`}>
+        {icon}
+      </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900 dark:text-white">{count}</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+        <p className="font-display text-2xl font-bold text-white">{count}</p>
+        <p className="text-xs text-gray-500 font-mono uppercase tracking-wider">{label}</p>
       </div>
     </Link>
   );

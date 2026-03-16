@@ -10,9 +10,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "highlight.js": "^11.11.1",
     "lucide-react": "^0.468.0",
     "nauth-react": "^0.7.1",
-    "nnews-react": "^0.3.10",
+    "nnews-react": "file:../NNews/nnews-react",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.0",

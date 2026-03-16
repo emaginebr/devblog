@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useArticles, ArticleViewer, type Article } from 'nnews-react';
 import { Terminal } from 'lucide-react';
-import CodeHighlighter from '../components/CodeHighlighter';
+import CodeHighlighter from '../../components/CodeHighlighter';
 
-export default function ArticleViewPage() {
+export default function AdminArticleViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { getArticleById } = useArticles();
@@ -39,7 +39,7 @@ export default function ArticleViewPage() {
           Error 404 — O recurso solicitado não existe.
         </p>
         <button
-          onClick={() => navigate('/articles')}
+          onClick={() => navigate('/admin/articles')}
           className="btn-secondary inline-flex items-center gap-2 text-sm"
         >
           Voltar para artigos
@@ -53,7 +53,9 @@ export default function ArticleViewPage() {
       <CodeHighlighter>
         <ArticleViewer
           article={article}
-          onBack={() => navigate('/articles')}
+          onBack={() => navigate('/admin/articles')}
+          onEdit={(a) => navigate(`/admin/articles/${a.articleId}/edit`)}
+          showActions={true}
         />
       </CodeHighlighter>
     </div>

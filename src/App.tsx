@@ -16,6 +16,8 @@ import ProfilePage from './pages/ProfilePage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import ArticlesPage from './pages/ArticlesPage';
 import ArticleViewPage from './pages/ArticleViewPage';
+import AdminArticlesPage from './pages/admin/AdminArticlesPage';
+import AdminArticleViewPage from './pages/admin/AdminArticleViewPage';
 import ArticleEditorPage from './pages/ArticleEditorPage';
 import CategoriesPage from './pages/CategoriesPage';
 import TagsPage from './pages/TagsPage';
@@ -56,6 +58,8 @@ function AppContent() {
             <Route path={ROUTES.DASHBOARD} element={<DashboardPage />} />
             <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
             <Route path={ROUTES.CHANGE_PASSWORD} element={<ChangePasswordPage />} />
+            <Route path={ROUTES.ADMIN_ARTICLES} element={<AdminArticlesPage />} />
+            <Route path={ROUTES.ADMIN_ARTICLE_VIEW} element={<AdminArticleViewPage />} />
             <Route path={ROUTES.ARTICLE_NEW} element={<ArticleEditorPage />} />
             <Route path={ROUTES.ARTICLE_EDIT} element={<ArticleEditorPage />} />
             <Route path={ROUTES.CATEGORIES} element={<CategoriesPage />} />
@@ -69,7 +73,7 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/rodrigolandim">
       <NAuthProvider
         config={{
           apiUrl: authApiUrl,
