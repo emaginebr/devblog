@@ -1,22 +1,32 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useArticles, ArticleList } from 'nnews-react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { articlePath } from '../lib/public-api';
+import { useLocation, Link } from 'react-router-dom';
+import type { Article } from 'nnews-react';
+import { ChevronLeft, ChevronRight, Calendar, Tag } from 'lucide-react';
+import { fetchPublic, articlePath, type PagedResult } from '../lib/public-api';
 
 export default function ArticlesPage() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { articles, loading, error, fetchArticles } = useArticles();
+  const location = useLocation();
+  const [articles, setArticles] = useState<PagedResult<Article> | null>(null);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
-  const categoryId = searchParams.get('category')
-    ? Number(searchParams.get('category'))
-    : undefined;
-
   useEffect(() => {
-    fetchArticles({ page, pageSize: 12, categoryId });
-  }, [page, categoryId]);
+    async function loadArticles() {
+      setLoading(true);
+      try {
+        const data = await fetchPublic<PagedResult<Article>>('/Article/ListByRoles', {
+          page,
+          pageSize: 12,
+        });
+        setArticles(data);
+      } catch {
+        setArticles(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadArticles();
+  }, [page]);
 
   return (
     <div className="space-y-8">
@@ -25,17 +35,72 @@ export default function ArticlesPage() {
         <div className="flex items-center gap-3">
           <div className="w-1 h-7 rounded-full bg-gradient-to-b from-dotnet-purple to-dotnet-cyan" />
           <h1 className="font-display text-3xl font-bold text-white tracking-tight">Artigos</h1>
+          <span className="font-mono text-sm text-gray-500">
+            {articles?.totalCount ?? 0} artigo(s)
+          </span>
         </div>
       </div>
 
       {/* Article List */}
       <div className="animate-fade-in-up stagger-1">
-        <ArticleList
-          articles={articles}
-          loading={loading}
-          error={error}
-          onArticleClick={(article) => navigate(articlePath(article.category?.title ?? 'artigo', article.title, article.articleId, '/articles'))}
-        />
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-dotnet-purple/20 border-t-dotnet-purple" />
+          </div>
+        ) : articles && articles.items.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {articles.items.map((article, i) => (
+              <Link
+                key={article.articleId}
+                to={articlePath(article.category?.title ?? 'artigo', article.title, article.articleId, location.pathname)}
+                className={`card-noir group overflow-hidden animate-fade-in-up stagger-${Math.min(i + 1, 6)}`}
+              >
+                <div className="aspect-video overflow-hidden relative bg-surface-2">
+                  {(article.imageUrl || article.imageName) ? (
+                    <>
+                      <img
+                        src={article.imageUrl || article.imageName}
+                        alt={article.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-surface-1 via-transparent to-transparent opacity-60" />
+                    </>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Tag className="h-10 w-10 text-gray-700" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-5">
+                  <h3 className="font-display font-semibold text-white mb-3 line-clamp-2 group-hover:text-dotnet-purple-light transition-colors">
+                    {article.title}
+                  </h3>
+                  <div className="flex items-center gap-3 text-xs text-gray-500 font-mono">
+                    {article.dateAt && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(article.dateAt).toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
+                    {article.category && (
+                      <span className="badge-dotnet">
+                        <Tag className="h-2.5 w-2.5 inline mr-1" />
+                        {article.category.title}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-16 card-noir">
+            <Tag className="h-8 w-8 text-gray-600 mx-auto mb-3" />
+            <p className="text-gray-500 font-mono text-sm">
+              Nenhum artigo publicado ainda.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Pagination */}

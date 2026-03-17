@@ -18,7 +18,7 @@ export default function HomePage() {
       setLoading(true);
       try {
         const [articlesData, categoriesData, tagsData] = await Promise.all([
-          fetchPublic<PagedResult<Article>>('/Article/ListByRoles', { page: 1, pageSize: 6 }),
+          fetchPublic<PagedResult<Article>>('/Article/ListByRoles', { page: 1, pageSize: 8 }),
           fetchPublic<Category[]>('/Category/listByParent'),
           fetchPublic<TagType[]>('/Tag/ListByRoles'),
         ]);
